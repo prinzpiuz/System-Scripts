@@ -3,5 +3,9 @@ chezmoi
 paisa
 core
 .env
-system_monitoring/configs/
 bw-ssh-manager
+system_monitoring/configs/backrest
+system_monitoring/configs/homepage
+system_monitoring/configs/influxdb
+system_monitoring/configs/myspeed
+system_monitoring/configs/scrutiny
