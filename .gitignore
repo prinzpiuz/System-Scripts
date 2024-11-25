@@ -4,3 +4,4 @@ paisa
 core
 .env
 system_monitoring/configs/
+bw-ssh-manager
