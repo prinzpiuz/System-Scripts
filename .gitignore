@@ -2,3 +2,5 @@ librespeed-cli-linux-amd64
 chezmoi
 paisa
 core
+.env
+system_monitoring/configs/
