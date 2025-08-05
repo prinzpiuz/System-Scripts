@@ -1,0 +1,46 @@
+#!/home/prinzpiuz/venvs/common_3_10/bin/python3
+
+import base64
+import sys
+import os
+
+from dotenv import load_dotenv
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import (
+    Mail,
+    Attachment,
+    FileContent,
+    FileName,
+    FileType,
+    Disposition,
+)
+
+load_dotenv()
+
+
+message = Mail(
+    from_email="prinzpiuz@gmail.com",
+    to_emails=f"{sys.argv[1]}",
+    subject="Backup Failed",
+    html_content="<strong>Backup Status</strong>",
+)
+
+try:
+    with open(sys.argv[2], "rb") as f:
+        data = f.read()
+        f.close()
+    encoded_file = base64.b64encode(data).decode()
+    attachedFile = Attachment(
+        FileContent(encoded_file),
+        FileName("log.txt"),
+        FileType("txt/plain"),
+        Disposition("attachment"),
+    )
+    message.attachment = attachedFile
+except IndexError as e:
+    pass
+try:
+    sendgrid_client = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY"))
+    response = sendgrid_client.send(message)
+except Exception as e:
+    pass

@@ -2,5 +2,11 @@ librespeed-cli-linux-amd64
 chezmoi
 paisa
 core
+.env
 bw-ssh-manager
 .env
+system_monitoring/configs/backrest
+system_monitoring/configs/homepage
+system_monitoring/configs/influxdb
+system_monitoring/configs/myspeed
+system_monitoring/configs/scrutiny
