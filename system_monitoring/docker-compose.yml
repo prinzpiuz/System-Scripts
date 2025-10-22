@@ -8,9 +8,11 @@ services:
       - SYS_ADMIN
     volumes:
       - "/run/udev:/run/udev:ro"
+    env_file:
+      - .env
     environment:
       COLLECTOR_API_ENDPOINT: "http://192.168.1.10:8081"
-      COLLECTOR_HOST_ID: "Work-PC"
+      COLLECTOR_HOST_ID: ${COLLECTOR_HOST_ID}
       COLLECTOR_RUN_STARTUP: true
     devices:
-      - /dev/nvme0
+      - ${DEVICE_1}
