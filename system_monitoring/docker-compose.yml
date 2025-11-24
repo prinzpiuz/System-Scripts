@@ -40,4 +40,4 @@ services:
       - TOKEN=${BESZEL_TOKEN}
       - HUB_URL=http://${COLLECTOR_HOST_IP}:8090
       - INTEL_GPU_DEVICES=${GPU_DEVICE}
-      - SMART_DEVICES=${DEVICE_1}:nvme
+      - SMART_DEVICES=${DEVICE_1}:${DEVICE_1_TYPE}
