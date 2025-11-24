@@ -1,8 +1,8 @@
 services:
   SMART_collector:
+    image: "ghcr.io/analogj/scrutiny:master-collector"
     container_name: SMART_collector
     restart: unless-stopped
-    image: "ghcr.io/analogj/scrutiny:master-collector"
     cap_add:
       - SYS_RAWIO
       - SYS_ADMIN
@@ -16,3 +16,19 @@ services:
       COLLECTOR_RUN_STARTUP: true
     devices:
       - ${DEVICE_1}
+
+  beszel-agent:
+    image: henrygd/beszel-agent
+    container_name: beszel-agent
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./data/beszel_agent_data:/var/lib/beszel-agent
+    env_file:
+      - .env
+    environment:
+      - KEY=${BESZEL_KEY}
+      - LISTEN= /beszel_socket/beszel.sock
+      - TOKEN=${BESZEL_TOKEN}
+      - HUB_URL=http://192.168.1.10:8090
