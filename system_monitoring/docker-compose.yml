@@ -1,21 +1,5 @@
 services:
-  SMART_collector:
-    image: "ghcr.io/analogj/scrutiny:master-collector"
-    container_name: SMART_collector
-    restart: unless-stopped
-    cap_add:
-      - SYS_RAWIO
-      - SYS_ADMIN
-    volumes:
-      - "/run/udev:/run/udev:ro"
-    env_file:
-      - .env
-    environment:
-      COLLECTOR_API_ENDPOINT: "http://192.168.1.10:8081"
-      COLLECTOR_HOST_ID: ${COLLECTOR_HOST_ID}
-      COLLECTOR_RUN_STARTUP: true
-    devices:
-      - ${DEVICE_1}
+
 
   beszel-agent:
     image: henrygd/beszel-agent:alpine
