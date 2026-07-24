@@ -1,52 +1,68 @@
-#!/bin/bash                                                                                                                                                                                                                                                    
-# This script is intended to make switching between laptop and external displays easier when using i3+dmenu                                                                                                                                                    
-# To run this script, map it to some shortcut in your i3 config, e.g:                                                                                                                                                                                          
-# bindsym $mod+p exec --no-startup-id $config/display.sh                                                                                                                                                                                                       
-# IMPORTANT: run chmod +x on the script to make it executable                                                                                                                                                                                                  
-# The result is 4 options appearing in dmenu, from which you can choose                                                                                                                                                                                        
-                                                                                                                                                                                                                                                               
-                                                                                                                                                                                                                                                               
-# This is your default laptop screen, detect by running `xrandr`                                                                                                                                                                                               
-INTERNAL_OUTPUT="eDP-1"                                                                                                                                                                                                                                       
-                                                                                                                                                                                                                                                               
-# choices will be displayed in dmenu                                                                                                                                                                                                                           
-choices="Laptop\nDual\nExternal\nClone"                                                                                                                                                                                                                        
-                                                                                                                                                                                                                                                               
-# Your choice in dmenu will determine what xrandr command to run                                                                                                                                                                                               
-chosen=$(echo -e $choices | dmenu -i)                                                                                                                                                                                                                          
-                                                                                                                                                                                                                                                               
-# This is used to determine which external display you have connected
-# This may vary between OS. e.g VGA1 instead of VGA-1
-if [ $(xrandr | grep VGA-1 | grep -c ' connected ') -eq 1 ]; then
-        EXTERNAL_OUTPUT="VGA-1"
-fi
-if [ $(xrandr | grep DVI-1 | grep -c ' connected ') -eq 1 ]; then
-        EXTERNAL_OUTPUT="DVI-1"
-fi
-if [ $(xrandr | grep HDMI-1 | grep -c ' connected ') -eq 1 ]; then
-        EXTERNAL_OUTPUT="HDMI-1"
-fi
-if [ $(xrandr | grep HDMI-2 | grep -c ' connected ') -eq 1 ]; then
-        EXTERNAL_OUTPUT="HDMI-2"
-fi
-if [ $(xrandr | grep HDMI-3 | grep -c ' connected ') -eq 1 ]; then
-        EXTERNAL_OUTPUT="HDMI-3"
-fi
-if [ $(xrandr | grep DP1 | grep -c ' connected ') -eq 1 ]; then
-        EXTERNAL_OUTPUT="DP-1"
-fi
-if [ $(xrandr | grep DP-2 | grep -c ' connected ') -eq 1 ]; then
-        EXTERNAL_OUTPUT="DP-2"
-fi
-if [ $(xrandr | grep DP-3 | grep -c ' connected ') -eq 1 ]; then
-        EXTERNAL_OUTPUT="DP-3"
+#!/bin/bash
+# display.sh - i3 + dmenu display switcher
+# Office: laptop HDMI direct.  Home: Thunderbolt dock.
+
+INTERNAL_OUTPUT="eDP-1"
+WALLPAPER="$HOME/Pictures/wallpaper.jpg"
+DMENU_FONT="DejaVu Sans Mono-14"
+
+DPI_EXTERNAL=144 # 27" 4K
+DPI_INTERNAL=96  # adjust to taste for the laptop panel
+
+# Detect whichever external output is actually connected.
+# Matches HDMI-1, DP-1, DVI-1, VGA-1 etc. and ignores "disconnected".
+EXTERNAL_OUTPUT=$(xrandr | grep -E '^(HDMI|DP|DVI|VGA)[^ ]* connected' |
+        head -n1 | cut -d' ' -f1)
+
+choices="Laptop\nExternal 4K30 (sharp)\nExternal 1440p60 (smooth)\nDual\nClone"
+chosen=$(echo -e "$choices" | dmenu -i -fn "$DMENU_FONT")
+
+set_dpi() {
+        echo "Xft.dpi: $1" | xrdb -merge
+}
+
+refresh_desktop() {
+        [ -f "$WALLPAPER" ] && feh --bg-fill "$WALLPAPER"
+        i3-msg restart >/dev/null 2>&1
+}
+
+if [ -z "$EXTERNAL_OUTPUT" ] && [ "$chosen" != "Laptop" ]; then
+        notify-send "display.sh" "No external display detected"
+        exit 1
 fi
 
-# xrander will run and turn on the display you want, if you have an option for 3 displays, this will need some modifications
 case "$chosen" in
-    External) xrandr --output $INTERNAL_OUTPUT --off --output $EXTERNAL_OUTPUT --auto --primary ;;
-    Laptop) xrandr --output $INTERNAL_OUTPUT --auto --primary --output $EXTERNAL_OUTPUT --off ;;
-    Clone) xrandr --output $INTERNAL_OUTPUT --auto --output $EXTERNAL_OUTPUT --auto --same-as $INTERNAL_OUTPUT ;;
-    Dual) xrandr --output $INTERNAL_OUTPUT --auto --output $EXTERNAL_OUTPUT --auto --right-of $INTERNAL_OUTPUT --primary ;;
+"External 4K30 (sharp)")
+        xrandr --output "$INTERNAL_OUTPUT" --off \
+                --output "$EXTERNAL_OUTPUT" --mode 3840x2160 --rate 30 --primary
+        set_dpi $DPI_EXTERNAL
+        ;;
 
+"External 1440p60 (smooth)")
+        xrandr --output "$INTERNAL_OUTPUT" --off \
+                --output "$EXTERNAL_OUTPUT" --mode 2560x1440 --rate 60 --primary
+        set_dpi 96
+        ;;
+
+Laptop)
+        xrandr --output "$INTERNAL_OUTPUT" --auto --primary \
+                --output "$EXTERNAL_OUTPUT" --off
+        set_dpi $DPI_INTERNAL
+        ;;
+
+Clone)
+        xrandr --output "$INTERNAL_OUTPUT" --auto \
+                --output "$EXTERNAL_OUTPUT" --auto --same-as "$INTERNAL_OUTPUT"
+        set_dpi $DPI_INTERNAL
+        ;;
+
+Dual)
+        xrandr --output "$INTERNAL_OUTPUT" --auto \
+                --output "$EXTERNAL_OUTPUT" --auto --right-of "$INTERNAL_OUTPUT" --primary
+        set_dpi $DPI_INTERNAL
+        ;;
+
+*) exit 0 ;;
 esac
+
+refresh_desktop
